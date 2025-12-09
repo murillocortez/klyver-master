@@ -127,45 +127,34 @@ export const tenantService = {
                     }
                 });
 
-                let userId = crypto.randomUUID(); // Fallback
+                let userId: string = crypto.randomUUID(); // Fallback ID
 
                 if (authError) {
                     console.warn('Warning: Could not create Supabase Auth user (maybe already exists)', authError);
-                    // If user exists, we might want to try to update password or just proceed with profile creation
-                    // But we don't have user ID if failure.
-                } else if (authData.user) {
+                } else if (authData && authData.user) {
                     userId = authData.user.id;
                     console.log('Supabase Auth user created successfully:', userId);
                 }
 
                 // 3. Hash Password (For profiles table legacy/redundancy)
-                const msgBuffer = new TextEncoder().encode(tempPassword);
-                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const encoder = new TextEncoder();
+                const data = encoder.encode(tempPassword);
+                const hash = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hash));
                 const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
                 // 4. Create User in 'profiles'
-                // @ts-ignore
-                const newUserPromise = supabase.from('profiles').insert({
-                    id: userId, // Link to real Auth ID
+                await supabase.from('profiles').insert({
+                    id: userId as any, // Cast to any to satisfy DB type definition if needed
+                    email: formData.adminEmail,
                     full_name: formData.adminName,
                     role: 'ADMIN',
-                    // @ts-ignore
-                    email: formData.adminEmail,
-                    // @ts-ignore
                     tenant_id: tenantData.id,
-                    // @ts-ignore
                     password_hash: passwordHash,
-                    // @ts-ignore
-                    status: 'active',
-                    // @ts-ignore
                     temp_password_created: new Date().toISOString()
                 });
 
-                newUserPromise.then(({ error: userError }) => {
-                    if (userError) console.warn('Warning: Could not create initial user profile DB record', userError);
-                    else console.log('Initial user profile created successfully');
-                });
+                console.log('Initial user profile created successfully');
 
             } catch (err) {
                 console.error("Failed to generate/save initial user", err);

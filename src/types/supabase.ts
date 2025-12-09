@@ -193,6 +193,53 @@ export type Database = {
                     updated_at?: string | null
                 }
                 Relationships: []
+            },
+            profiles: {
+                Row: {
+                    id: string
+                    email: string | null
+                    full_name: string | null
+                    role: string | null
+                    tenant_id: string | null
+                    password_hash: string | null
+                    temp_password_created: string | null
+                    status: string | null
+                    created_at: string | null
+                    updated_at: string | null
+                }
+                Insert: {
+                    id: string
+                    email?: string | null
+                    full_name?: string | null
+                    role?: string | null
+                    tenant_id?: string | null
+                    password_hash?: string | null
+                    temp_password_created?: string | null
+                    status?: string | null
+                    created_at?: string | null
+                    updated_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    email?: string | null
+                    full_name?: string | null
+                    role?: string | null
+                    tenant_id?: string | null
+                    password_hash?: string | null
+                    temp_password_created?: string | null
+                    status?: string | null
+                    created_at?: string | null
+                    updated_at?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "profiles_tenant_id_fkey"
+                        columns: ["tenant_id"]
+                        isOneToOne: false
+                        referencedRelation: "tenants"
+                        referencedColumns: ["id"]
+                    }
+                ]
             }
         }
         // ... other tables omitted for brevity unless needed
