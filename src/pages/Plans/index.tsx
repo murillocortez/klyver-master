@@ -13,6 +13,14 @@ export const Plans: React.FC = () => {
     loadPlans();
   }, []);
 
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsModalOpen(false);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
+
   const loadPlans = async () => {
     try {
       setLoading(true);
@@ -113,7 +121,15 @@ export const Plans: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.map((plan) => {
-          const features = (Array.isArray(plan.features) ? plan.features : []) as string[];
+          // Robust feature extraction handling both Array (legacy) and JSON Object (new) formats
+          let features: string[] = [];
+
+          if (Array.isArray(plan.features)) {
+            features = plan.features as string[];
+          } else if (typeof plan.features === 'object' && plan.features !== null) {
+            features = (plan.features as any).display_list || [];
+          }
+
           const limits = (plan.limits as any) || {};
 
           return (
@@ -176,8 +192,14 @@ export const Plans: React.FC = () => {
 
       {/* EDIT/CREATE MODAL */}
       {isModalOpen && editingPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
               <h3 className="text-xl font-bold text-slate-900">
                 {(editingPlan as any).id ? 'Editar Plano' : 'Novo Plano'}
@@ -185,7 +207,7 @@ export const Plans: React.FC = () => {
               <button onClick={() => setIsModalOpen(false)}><X className="w-6 h-6 text-slate-400" /></button>
             </div>
 
-            <form onSubmit={handleSavePlan} className="overflow-y-auto p-6 space-y-6">
+            <form onSubmit={handleSavePlan} className="overflow-y-auto p-6 space-y-6 custom-scrollbar">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-slate-700">Nome do Plano</label>
@@ -193,7 +215,7 @@ export const Plans: React.FC = () => {
                     required
                     value={editingPlan.name || ''}
                     onChange={e => setEditingPlan(prev => ({ ...prev!, name: e.target.value }))}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
                   />
                 </div>
                 <div className="space-y-1">
@@ -201,7 +223,7 @@ export const Plans: React.FC = () => {
                   <input
                     value={editingPlan.code || ''}
                     onChange={e => setEditingPlan(prev => ({ ...prev!, code: e.target.value }))}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-600"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-600 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
                     placeholder="Auto-gerado se vazio"
                   />
                 </div>
@@ -214,7 +236,7 @@ export const Plans: React.FC = () => {
                     type="number" step="0.01"
                     value={editingPlan.price_month || 0}
                     onChange={e => setEditingPlan(prev => ({ ...prev!, price_month: Number(e.target.value) }))}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
                   />
                 </div>
                 <div className="space-y-1">
@@ -223,7 +245,7 @@ export const Plans: React.FC = () => {
                     type="number" step="0.01"
                     value={editingPlan.price_year || 0}
                     onChange={e => setEditingPlan(prev => ({ ...prev!, price_year: Number(e.target.value) }))}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
                   />
                 </div>
               </div>
@@ -271,13 +293,68 @@ export const Plans: React.FC = () => {
                 <p className="text-[10px] text-slate-400">Use números altos (ex: 999999) para representar "Ilimitado".</p>
               </div>
 
+              {/* System Capabilities Checkboxes */}
+              <div className="space-y-3 pt-2">
+                <h4 className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
+                  Funcionalidades do Sistema (Admin)
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { key: 'cashback', label: 'Cashback' },
+                    { key: 'api_whatsapp', label: 'API WhatsApp' },
+                    { key: 'curve_abc', label: 'Curva ABC' },
+                    { key: 'multi_loja', label: 'Multi-Loja' },
+                    { key: 'lista_inteligente', label: 'Lista Inteligente' }
+                  ].map((feat) => {
+                    // Check existing value from JSON object features, handling mixed types
+                    const isChecked = (editingPlan.features as any)?.[feat.key] === true;
+                    return (
+                      <label key={feat.key} className="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg bg-slate-50/50 cursor-pointer hover:bg-slate-100 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            const currentFeatures = (typeof editingPlan.features === 'object' && !Array.isArray(editingPlan.features))
+                              ? { ...editingPlan.features }
+                              : { display_list: Array.isArray(editingPlan.features) ? editingPlan.features : [] };
+
+                            (currentFeatures as any)[feat.key] = e.target.checked;
+                            setEditingPlan(prev => ({ ...prev!, features: currentFeatures as any }));
+                          }}
+                          className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 border-gray-300"
+                        />
+                        <span className="text-sm text-slate-700 cursor-pointer select-none">{feat.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Lista de Recursos (Um por linha)</label>
+                <label className="text-sm font-medium text-slate-700">
+                  Lista Visual de Recursos (Pricing Card)
+                  <span className="text-xs font-normal text-slate-400 ml-2">(Um por linha)</span>
+                </label>
                 <textarea
                   rows={6}
-                  value={Array.isArray(editingPlan.features) ? editingPlan.features.join('\n') : ''}
-                  onChange={(e) => handleFeatureChange(e.target.value)}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono"
+                  value={
+                    // Safe access to display_list or fallback to array if it is one
+                    (typeof editingPlan.features === 'object' && !Array.isArray(editingPlan.features) && (editingPlan.features as any).display_list)
+                      ? (editingPlan.features as any).display_list.join('\n')
+                      : (Array.isArray(editingPlan.features) ? editingPlan.features.join('\n') : '')
+                  }
+                  onChange={(e) => {
+                    const text = e.target.value;
+                    const displayList = text.split('\n');
+
+                    const currentFeatures = (typeof editingPlan.features === 'object' && !Array.isArray(editingPlan.features))
+                      ? { ...editingPlan.features }
+                      : {}; // Start clean if it was array
+
+                    (currentFeatures as any).display_list = displayList;
+                    setEditingPlan(prev => ({ ...prev!, features: currentFeatures as any }));
+                  }}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
                   placeholder="Acesso ao App Mobile&#10;Suporte VIP&#10;Controle de Estoque"
                 ></textarea>
               </div>
