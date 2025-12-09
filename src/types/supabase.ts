@@ -43,6 +43,7 @@ export type Database = {
                     updated_at: string | null
                     verification_token: string | null
                     api_key: string | null
+                    onboarding_status: string | null
                 }
                 Insert: {
                     active_users?: number | null
@@ -71,6 +72,7 @@ export type Database = {
                     store_base_url?: string | null
                     updated_at?: string | null
                     verification_token?: string | null
+                    onboarding_status?: string | null
                 }
                 Update: {
                     active_users?: number | null
@@ -99,6 +101,7 @@ export type Database = {
                     store_base_url?: string | null
                     updated_at?: string | null
                     verification_token?: string | null
+                    onboarding_status?: string | null
                 }
                 Relationships: []
             },

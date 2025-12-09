@@ -71,7 +71,6 @@ export const tenantService = {
             monthly_revenue: 0,
             active_users: 0,
             risk_score: 0,
-            // @ts-ignore
             onboarding_status: 'completed' // Force completed to avoid "Dados pendentes" badge
         };
 
