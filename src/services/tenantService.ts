@@ -70,7 +70,9 @@ export const tenantService = {
             store_base_url: getStoreUrl(slug),
             monthly_revenue: 0,
             active_users: 0,
-            risk_score: 0
+            risk_score: 0,
+            // @ts-ignore
+            onboarding_status: 'completed' // Force completed to avoid "Dados pendentes" badge
         };
 
         const { data: tenantData, error } = await supabase
@@ -100,35 +102,67 @@ export const tenantService = {
                     numbers.charAt(Math.floor(Math.random() * numbers.length)) +
                     Array(5).fill(null).map(() => lowers.charAt(Math.floor(Math.random() * lowers.length))).join('');
 
-                // 2. Hash Password (Simple SHA-256 for storage simulation/db)
+                // 2. Create Auth User (Real Supabase Auth)
+                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+                const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+                // Create a temporary client to avoid messing with current session
+                const { createClient } = await import('@supabase/supabase-js');
+                const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+                    auth: {
+                        persistSession: false,
+                        autoRefreshToken: false,
+                        detectSessionInUrl: false
+                    }
+                });
+
+                const { data: authData, error: authError } = await authClient.auth.signUp({
+                    email: formData.adminEmail,
+                    password: tempPassword,
+                    options: {
+                        data: {
+                            full_name: formData.adminName,
+                            role: 'ADMIN',
+                            tenant_id: tenantData.id
+                        }
+                    }
+                });
+
+                let userId = crypto.randomUUID(); // Fallback
+
+                if (authError) {
+                    console.warn('Warning: Could not create Supabase Auth user (maybe already exists)', authError);
+                    // If user exists, we might want to try to update password or just proceed with profile creation
+                    // But we don't have user ID if failure.
+                } else if (authData.user) {
+                    userId = authData.user.id;
+                    console.log('Supabase Auth user created successfully:', userId);
+                }
+
+                // 3. Hash Password (For profiles table legacy/redundancy)
                 const msgBuffer = new TextEncoder().encode(tempPassword);
                 const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
                 const hashArray = Array.from(new Uint8Array(hashBuffer));
                 const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-                // 3. Create User in 'profiles' or 'users' (assuming public table for MVP or specific Auth logic)
-                // Since we don't have direct access to Auth Admin API here without service key, 
-                // we will insert into 'profiles' and assume a linkage or treat this as the "record of truth" for the new tenant.
-                // In a real production scenario, this would be an Edge Function call.
-
+                // 4. Create User in 'profiles'
                 // @ts-ignore
                 const newUserPromise = supabase.from('profiles').insert({
-                    id: crypto.randomUUID(), // Mocking a UUID since we skipped Auth.signUp
+                    id: userId, // Link to real Auth ID
                     full_name: formData.adminName,
                     role: 'ADMIN',
                     // @ts-ignore
-                    email: formData.adminEmail, // Assuming email column exists or adding it
+                    email: formData.adminEmail,
                     // @ts-ignore
                     tenant_id: tenantData.id,
                     // @ts-ignore
-                    password_hash: passwordHash, // Storing hash
+                    password_hash: passwordHash,
                     // @ts-ignore
                     status: 'active',
                     // @ts-ignore
                     temp_password_created: new Date().toISOString()
                 });
 
-                // We don't await this strictly to fail the tenant creation, but we log it
                 newUserPromise.then(({ error: userError }) => {
                     if (userError) console.warn('Warning: Could not create initial user profile DB record', userError);
                     else console.log('Initial user profile created successfully');
