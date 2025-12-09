@@ -144,16 +144,21 @@ export const tenantService = {
                 const hashArray = Array.from(new Uint8Array(hash));
                 const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-                // 4. Create User in 'profiles'
-                await supabase.from('profiles').insert({
-                    id: userId as any, // Cast to any to satisfy DB type definition if needed
+                // 4. Create or Update User in 'profiles' (Upsert to handle potential triggers)
+                const { error: profileError } = await supabase.from('profiles').upsert({
+                    id: userId as any,
                     email: formData.adminEmail,
                     full_name: formData.adminName,
-                    role: 'ADMIN',
-                    tenant_id: tenantData.id as any, // Ensure tenant_id is cast if needed
+                    role: 'CEO', // Highest role for the owner
+                    tenant_id: tenantData.id as any,
                     password_hash: passwordHash,
                     temp_password_created: new Date().toISOString()
                 });
+
+                if (profileError) {
+                    console.error('Error creating/updating profile:', profileError);
+                    alert('Aviso: Usuário de Auth criado, mas falha ao definir perfil de Admin. Contate suporte.');
+                }
 
                 console.log('Initial user profile created successfully');
 
@@ -236,7 +241,7 @@ export const tenantService = {
                     await supabase.from('profiles').insert({
                         id: crypto.randomUUID(),
                         full_name: updates.adminName,
-                        role: 'ADMIN',
+                        role: 'CEO',
                         // @ts-ignore
                         email: updates.adminEmail,
                         // @ts-ignore
