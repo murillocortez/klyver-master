@@ -83,8 +83,11 @@ export const MOCK_TENANTS: Tenant[] = [
     phone: '(11) 98765-4321',
     email: 'contato@saojoao.com',
     responsibleName: 'João Silva',
+    planId: 'p_premium', // Added
     planCode: 'p_premium',
     status: 'active',
+    adminBaseUrl: 'https://admin-saojoao.farmavida.com', // Added
+    storeBaseUrl: 'https://loja-saojoao.farmavida.com', // Added
     createdAt: '2023-01-15T10:00:00Z',
     nextBillingDate: '2023-11-15T10:00:00Z',
     lastActivity: '2023-10-26T14:30:00Z',
@@ -103,8 +106,11 @@ export const MOCK_TENANTS: Tenant[] = [
     phone: '(21) 91234-5678',
     email: 'financeiro@drogariasmax.com',
     responsibleName: 'Maria Oliveira',
+    planId: 'p_enterprise', // Added
     planCode: 'p_enterprise',
     status: 'active',
+    adminBaseUrl: 'https://admin-max.farmavida.com', // Added
+    storeBaseUrl: 'https://loja-max.farmavida.com', // Added
     createdAt: '2023-03-10T09:00:00Z',
     nextBillingDate: '2023-11-10T09:00:00Z',
     lastActivity: '2023-10-27T08:15:00Z',
@@ -123,8 +129,11 @@ export const MOCK_TENANTS: Tenant[] = [
     phone: '(31) 99887-7665',
     email: 'gerencia@fveconomica.com',
     responsibleName: 'Carlos Santos',
+    planId: 'p_start', // Added
     planCode: 'p_start',
     status: 'pending',
+    adminBaseUrl: 'https://admin-economica.farmavida.com', // Added
+    storeBaseUrl: 'https://loja-economica.farmavida.com', // Added
     createdAt: '2023-06-20T11:00:00Z',
     nextBillingDate: '2023-10-25T11:00:00Z', // Past due
     lastActivity: '2023-10-20T16:00:00Z',
@@ -143,8 +152,11 @@ export const MOCK_TENANTS: Tenant[] = [
     phone: '(41) 98877-1122',
     email: 'admin@popularcentro.com',
     responsibleName: 'Ana Pereira',
+    planId: 'p_start', // Added
     planCode: 'p_start',
     status: 'blocked',
+    adminBaseUrl: 'https://admin-popular.farmavida.com', // Added
+    storeBaseUrl: 'https://loja-popular.farmavida.com', // Added
     createdAt: '2023-02-01T08:00:00Z',
     nextBillingDate: '2023-09-01T08:00:00Z',
     lastActivity: '2023-08-28T18:00:00Z',

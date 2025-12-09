@@ -42,7 +42,7 @@ export const apiGetLicenseStatus = async (tenantId: string): Promise<ApiResponse
   }
 
   const plan = PLANS.find(p => p.id === tenant.planCode);
-  const daysRemaining = getDaysRemaining(tenant.nextBillingDate);
+  const daysRemaining = getDaysRemaining(tenant.nextBillingDate || new Date().toISOString());
 
   // Map internal features to external API format
   const features = plan ? {
