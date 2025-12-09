@@ -5,7 +5,8 @@
  */
 
 export const getAdminUrl = (slug: string): string => {
-    const baseUrl = import.meta.env.VITE_ADMIN_BASE_URL || 'http://localhost:5174';
+    // Default to production Vercel app if env is not set (better for live demo)
+    const baseUrl = import.meta.env.VITE_ADMIN_BASE_URL || 'https://klyver-admin.vercel.app';
 
     // Clean trailing slash if exists
     const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
