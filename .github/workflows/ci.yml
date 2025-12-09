@@ -1,0 +1,34 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Source
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Run Build
+      run: npm run build
+
+    # Optional: If you had tests, you would run them here
+    # - name: Run Tests
+    #   run: npm run test
+
+  # Note: For Vercel, the specialized Vercel GitHub App handles deployment automatically.
+  # This workflow ensures the build passes before merging/deploying.
