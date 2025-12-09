@@ -52,6 +52,7 @@ export interface Tenant {
 
   // Subscription Info
   planId: string; // mapped from plan_code
+  planCode: string; // alias for planId to match usage in components
   status: TenantStatus;
   createdAt: string;
   nextBillingDate?: string;
@@ -61,6 +62,12 @@ export interface Tenant {
   monthlyRevenue: number; // mapped from monthly_revenue
   activeUsers: number; // mapped from active_users
   riskScore: number; // mapped from risk_score
+
+  // Generated/Dynamic Fields
+  apiKey?: string;
+  adminBaseUrl: string;
+  storeBaseUrl: string;
+  onboardingStatus?: 'pending' | 'completed';
 }
 
 export interface Ticket {

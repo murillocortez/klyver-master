@@ -316,6 +316,7 @@ export const tenantService = {
             custom_domain_admin: row.custom_domain_admin || undefined,
             custom_domain_store: row.custom_domain_store || undefined,
             domain_status: row.domain_status as any,
+            planId: row.plan_code || 'free',
             planCode: row.plan_code || 'free',
             status: (row.status as TenantStatus) || 'pending',
             adminBaseUrl: getAdminUrl(row.slug || ''),
@@ -326,6 +327,7 @@ export const tenantService = {
             monthlyRevenue: row.monthly_revenue || 0,
             activeUsers: row.active_users || 0,
             riskScore: row.risk_score || 0,
+            // @ts-ignore
             apiKey: row.api_key || undefined,
             // @ts-ignore
             onboardingStatus: row.onboarding_status || 'pending'

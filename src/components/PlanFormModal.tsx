@@ -22,7 +22,7 @@ const DEFAULT_FEATURES: PlanFeatures = {
 
 const DEFAULT_PLAN: Plan = {
     id: '',
-    name: '',
+    name: 'START',
     priceMonthly: 0,
     priceYearly: 0,
     maxClients: 0,
@@ -54,7 +54,7 @@ export const PlanFormModal: React.FC<PlanFormModalProps> = ({
 
     if (!isOpen) return null;
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         setFormData((prev) => ({
             ...prev,
@@ -99,15 +99,18 @@ export const PlanFormModal: React.FC<PlanFormModalProps> = ({
                             <label className="block text-sm font-medium text-slate-700 mb-1">
                                 Nome do Plano
                             </label>
-                            <input
-                                type="text"
+                            <select
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
                                 required
                                 className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                placeholder="Ex: START, PREMIUM"
-                            />
+                            >
+                                <option value="START">START</option>
+                                <option value="PREMIUM">PREMIUM</option>
+                                <option value="ADVANCED">ADVANCED</option>
+                                <option value="ENTERPRISE">ENTERPRISE</option>
+                            </select>
                         </div>
 
                         <div>
