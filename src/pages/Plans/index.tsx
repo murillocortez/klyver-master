@@ -315,7 +315,7 @@ export const Plans: React.FC = () => {
                           checked={isChecked}
                           onChange={(e) => {
                             const currentFeatures = (typeof editingPlan.features === 'object' && !Array.isArray(editingPlan.features))
-                              ? { ...editingPlan.features }
+                              ? { ...(editingPlan.features as any) }
                               : { display_list: Array.isArray(editingPlan.features) ? editingPlan.features : [] };
 
                             (currentFeatures as any)[feat.key] = e.target.checked;
@@ -348,7 +348,7 @@ export const Plans: React.FC = () => {
                     const displayList = text.split('\n');
 
                     const currentFeatures = (typeof editingPlan.features === 'object' && !Array.isArray(editingPlan.features))
-                      ? { ...editingPlan.features }
+                      ? { ...(editingPlan.features as any) }
                       : {}; // Start clean if it was array
 
                     (currentFeatures as any).display_list = displayList;
