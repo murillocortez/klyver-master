@@ -1,57 +1,50 @@
-import React, { useState } from 'react';
-import { User } from './types';
-import { Sidebar } from './components/Sidebar';
+import React, { useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Login } from './pages/Login';
-import { Dashboard } from './pages/Dashboard';
-import { Tenants } from './pages/Tenants';
-import { Plans } from './pages/Plans';
-import { Support } from './pages/Support';
-import { ApiIntegration } from './pages/Integrations'; // Updated import path
+import { Checkout } from './pages/Billing/Checkout';
+import { DashboardLayout } from './layouts/DashboardLayout';
 import { useAuthStore } from './store/authStore';
 import { authMasterService } from './services/authMasterService';
 
-function App() {
-  const { user, isAuthenticated, setUser, logout } = useAuthStore();
-  const [activePage, setActivePage] = useState('dashboard');
+/**
+ * Wrapper for Login component to handle navigation and auth store updates
+ */
+const LoginPage = () => {
+  const { setUser, isAuthenticated } = useAuthStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleLogin = async (email: string) => {
     try {
       const loggedUser = await authMasterService.login(email);
       setUser(loggedUser);
+      navigate('/');
     } catch (error) {
       console.error("Login failed", error);
       alert("Erro ao fazer login");
     }
   };
 
-  const handleLogout = () => {
-    logout();
-  };
+  return <Login onLogin={handleLogin} />;
+};
 
-  if (!isAuthenticated || !user) {
-    return <Login onLogin={handleLogin} />;
-  }
-
+function App() {
   return (
-    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-600 selection:bg-emerald-100 selection:text-emerald-800">
-      <Sidebar
-        activePage={activePage}
-        setActivePage={setActivePage}
-        user={user}
-        onLogout={handleLogout}
-      />
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/billing/checkout" element={<Checkout />} />
 
-      {/* Sidebar width is w-72 (18rem) */}
-      <main className="flex-1 ml-72 p-10 overflow-y-auto h-screen">
-        <div className="max-w-[1400px] mx-auto">
-          {activePage === 'dashboard' && <Dashboard />}
-          {activePage === 'tenants' && <Tenants />}
-          {activePage === 'plans' && <Plans />}
-          {activePage === 'support' && <Support />}
-          {activePage === 'api' && <ApiIntegration />}
-        </div>
-      </main>
-    </div>
+      {/* Auth Routes */}
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* Protected Routes */}
+      <Route path="/*" element={<DashboardLayout />} />
+    </Routes>
   );
 }
 

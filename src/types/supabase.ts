@@ -33,9 +33,9 @@ export type Database = {
                     monthly_revenue: number | null
                     phone: string | null
                     plan_code: string | null
-                    plan_label: string | null
-                    plan_tier: string | null
+                    plan_id: string | null
                     responsible_name: string | null
+                    responsible_email: string | null
                     risk_score: number | null
                     slug: string | null
                     status: string | null
@@ -44,6 +44,12 @@ export type Database = {
                     verification_token: string | null
                     api_key: string | null
                     onboarding_status: string | null
+                    trial_end: string | null
+                    current_period_start: string | null
+                    current_period_end: string | null
+                    last_payment_at: string | null
+                    next_payment_due_at: string | null
+                    blocked_reason: string | null
                 }
                 Insert: {
                     active_users?: number | null
@@ -63,9 +69,9 @@ export type Database = {
                     monthly_revenue?: number | null
                     phone?: string | null
                     plan_code?: string | null
-                    plan_label?: string | null
-                    plan_tier?: string | null
+                    plan_id?: string | null
                     responsible_name?: string | null
+                    responsible_email?: string | null
                     risk_score?: number | null
                     slug?: string | null
                     status?: string | null
@@ -73,6 +79,12 @@ export type Database = {
                     updated_at?: string | null
                     verification_token?: string | null
                     onboarding_status?: string | null
+                    trial_end?: string | null
+                    current_period_start?: string | null
+                    current_period_end?: string | null
+                    last_payment_at?: string | null
+                    next_payment_due_at?: string | null
+                    blocked_reason?: string | null
                 }
                 Update: {
                     active_users?: number | null
@@ -92,9 +104,9 @@ export type Database = {
                     monthly_revenue?: number | null
                     phone?: string | null
                     plan_code?: string | null
-                    plan_label?: string | null
-                    plan_tier?: string | null
+                    plan_id?: string | null
                     responsible_name?: string | null
+                    responsible_email?: string | null
                     risk_score?: number | null
                     slug?: string | null
                     status?: string | null
@@ -102,6 +114,87 @@ export type Database = {
                     updated_at?: string | null
                     verification_token?: string | null
                     onboarding_status?: string | null
+                    trial_end?: string | null
+                    current_period_start?: string | null
+                    current_period_end?: string | null
+                    last_payment_at?: string | null
+                    next_payment_due_at?: string | null
+                    blocked_reason?: string | null
+                }
+                Relationships: []
+            },
+            invoices: {
+                Row: {
+                    id: string
+                    tenant_id: string
+                    plan_id: string | null
+                    amount: number
+                    currency: string
+                    status: string
+                    due_date: string | null
+                    paid_at: string | null
+                    external_id: string | null
+                    created_at: string | null
+                }
+                Insert: {
+                    id?: string
+                    tenant_id: string
+                    plan_id?: string | null
+                    amount: number
+                    currency?: string
+                    status?: string
+                    due_date?: string | null
+                    paid_at?: string | null
+                    external_id?: string | null
+                    created_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    tenant_id?: string
+                    plan_id?: string | null
+                    amount?: number
+                    currency?: string
+                    status?: string
+                    due_date?: string | null
+                    paid_at?: string | null
+                    external_id?: string | null
+                    created_at?: string | null
+                }
+                Relationships: []
+            },
+            payments: {
+                Row: {
+                    id: string
+                    tenant_id: string
+                    invoice_id: string | null
+                    amount: number
+                    method: string | null
+                    status: string | null
+                    external_id: string | null
+                    created_at: string | null
+                    confirmed_at: string | null
+                }
+                Insert: {
+                    id?: string
+                    tenant_id: string
+                    invoice_id?: string | null
+                    amount: number
+                    method?: string | null
+                    status?: string | null
+                    external_id?: string | null
+                    created_at?: string | null
+                    confirmed_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    tenant_id?: string
+                    invoice_id?: string | null
+                    amount?: number
+                    method?: string | null
+                    status?: string | null
+                    external_id?: string | null
+                    created_at?: string | null
+                    confirmed_at?: string | null
                 }
                 Relationships: []
             },
@@ -109,51 +202,43 @@ export type Database = {
                 Row: {
                     id: string
                     tenant_id: string | null
-                    user_id: string | null
-                    requester_name: string | null
-                    requester_phone: string | null
+                    origin: string | null
                     subject: string | null
                     message: string | null
-                    urgency: string | null
+                    contact_name: string | null
+                    contact_email: string | null
                     status: string | null
+                    metadata: Json | null
                     created_at: string | null
                     updated_at: string | null
                 }
                 Insert: {
                     id?: string
                     tenant_id?: string | null
-                    user_id?: string | null
-                    requester_name?: string | null
-                    requester_phone?: string | null
+                    origin?: string | null
                     subject?: string | null
                     message?: string | null
-                    urgency?: string | null
+                    contact_name?: string | null
+                    contact_email?: string | null
                     status?: string | null
+                    metadata?: Json | null
                     created_at?: string | null
                     updated_at?: string | null
                 }
                 Update: {
                     id?: string
                     tenant_id?: string | null
-                    user_id?: string | null
-                    requester_name?: string | null
-                    requester_phone?: string | null
+                    origin?: string | null
                     subject?: string | null
                     message?: string | null
-                    urgency?: string | null
+                    contact_name?: string | null
+                    contact_email?: string | null
                     status?: string | null
+                    metadata?: Json | null
                     created_at?: string | null
                     updated_at?: string | null
                 }
-                Relationships: [
-                    {
-                        foreignKeyName: "support_tickets_tenant_id_fkey"
-                        columns: ["tenant_id"]
-                        isOneToOne: false
-                        referencedRelation: "tenants"
-                        referencedColumns: ["id"]
-                    }
-                ]
+                Relationships: []
             },
             store_plans: {
                 Row: {
@@ -162,9 +247,9 @@ export type Database = {
                     code: string
                     price_month: number
                     price_year: number
-                    limits: any // JSON
-                    features: string[] | null // Array of text
-                    tenant_id: string | null
+                    limits: Json | null
+                    features: Json | null
+                    is_active: boolean | null
                     created_at: string | null
                     updated_at: string | null
                 }
@@ -174,9 +259,9 @@ export type Database = {
                     code: string
                     price_month: number
                     price_year: number
-                    limits?: any
-                    features?: string[] | null
-                    tenant_id?: string | null
+                    limits?: Json | null
+                    features?: Json | null
+                    is_active?: boolean | null
                     created_at?: string | null
                     updated_at?: string | null
                 }
@@ -186,9 +271,9 @@ export type Database = {
                     code?: string
                     price_month?: number
                     price_year?: number
-                    limits?: any
-                    features?: string[] | null
-                    tenant_id?: string | null
+                    limits?: Json | null
+                    features?: Json | null
+                    is_active?: boolean | null
                     created_at?: string | null
                     updated_at?: string | null
                 }
