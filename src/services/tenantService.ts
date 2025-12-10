@@ -153,20 +153,20 @@ export const tenantService = {
                     tenant_id: tenantData.id as any,
                     password_hash: passwordHash,
                     status: 'active', // Ensure active status to bypass approval
-                    temp_password_created: new Date().toISOString(),
-                    // @ts-ignore
-                    is_first_user: true // Tag as first user per requirements
+                    temp_password_created: new Date().toISOString()
+                    // Removed is_first_user to avoid "column does not exist" error until migration is applied
                 });
 
                 if (profileError) {
                     console.error('Error creating/updating profile:', profileError);
-                    alert('Aviso: Usuário de Auth criado, mas falha ao definir perfil de Admin. Contate suporte.');
+                    alert(`Erro ao definir perfil de Admin: ${profileError.message || profileError.details || JSON.stringify(profileError)}`);
+                } else {
+                    console.log('Initial user profile created successfully (CEO/Active)');
                 }
 
-                console.log('Initial user profile created successfully (CEO/Active)');
-
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Failed to generate/save initial user", err);
+                alert(`Erro crítico ao criar usuário: ${err.message}`);
             }
         }
 
