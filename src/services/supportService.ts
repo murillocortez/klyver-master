@@ -90,7 +90,7 @@ export const supportService = {
 
         const { data: newTicket, error } = await supabase
             .from('support_tickets')
-            .insert(ticketData)
+            .insert(ticketData as any)
             .select()
             .single();
 
@@ -137,7 +137,7 @@ export const supportService = {
     async updateStatus(ticketId: string, status: string) {
         const { error } = await supabase
             .from('support_tickets')
-            .update({ status, updated_at: new Date().toISOString() })
+            .update({ status, updated_at: new Date().toISOString() } as any)
             .eq('id', ticketId);
 
         if (error) throw error;

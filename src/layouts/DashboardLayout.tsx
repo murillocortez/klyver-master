@@ -5,7 +5,7 @@ import { Sidebar } from '../components/Sidebar';
 import { Dashboard } from '../pages/Dashboard';
 import { Tenants } from '../pages/Tenants';
 import { Plans } from '../pages/Plans';
-import { Support } from '../pages/Support';
+import Support from '../pages/Support';
 import { ApiIntegration } from '../pages/Integrations';
 import { Navigate, useNavigate } from 'react-router-dom';
 

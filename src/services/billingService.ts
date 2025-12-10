@@ -19,7 +19,7 @@ export const billingService = {
                 paid_at: new Date().toISOString(),
                 due_date: new Date().toISOString(),
                 currency: 'BRL'
-            })
+            } as any)
             .select()
             .single();
 
@@ -35,7 +35,7 @@ export const billingService = {
                 method: method,
                 status: 'confirmed',
                 confirmed_at: new Date().toISOString()
-            });
+            } as any);
 
         if (payError) throw payError;
 
@@ -54,7 +54,7 @@ export const billingService = {
                 current_period_end: nextDue.toISOString(),
                 next_payment_due_at: nextDue.toISOString(),
                 blocked_reason: null
-            })
+            } as any)
             .eq('id', tenantId);
 
         if (tenantError) throw tenantError;
@@ -68,7 +68,7 @@ export const billingService = {
             .update({
                 status: 'blocked',
                 blocked_reason: reason
-            })
+            } as any)
             .eq('id', tenantId);
     },
 
@@ -110,7 +110,7 @@ export const billingService = {
             await supabase.from('tenants').update({
                 status: newStatus,
                 blocked_reason: newStatus === 'blocked' ? 'Pagamento atrasado há mais de 5 dias.' : 'Pagamento em atraso.'
-            }).eq('id', tenant.id);
+            } as any).eq('id', tenant.id);
         }
     }
 };

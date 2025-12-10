@@ -128,6 +128,7 @@ export const Dashboard: React.FC = () => {
                 const { supabase } = await import('../../supabaseClient');
                 const { data } = await supabase.from('tenants').select('id').eq('slug', 'farma-vida').single(); // Adjust slug if different
                 if (data) {
+                  // @ts-ignore
                   await billingService.blockTenant(data.id, 'Simulação de Pagamento Atrasado');
                   alert('Farmácia bloqueada com sucesso! Teste no Admin/Loja.');
                 } else {
@@ -148,6 +149,7 @@ export const Dashboard: React.FC = () => {
                 const { data } = await supabase.from('tenants').select('id').eq('slug', 'farma-vida').single();
                 if (data) {
                   // Manually unblock
+                  // @ts-ignore
                   await supabase.from('tenants').update({ status: 'active', blocked_reason: null }).eq('id', data.id);
                   alert('Farmácia desbloqueada!');
                 }
