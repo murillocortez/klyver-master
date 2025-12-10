@@ -152,7 +152,10 @@ export const tenantService = {
                     role: 'CEO', // Highest role for the owner
                     tenant_id: tenantData.id as any,
                     password_hash: passwordHash,
-                    temp_password_created: new Date().toISOString()
+                    status: 'active', // Ensure active status to bypass approval
+                    temp_password_created: new Date().toISOString(),
+                    // @ts-ignore
+                    is_first_user: true // Tag as first user per requirements
                 });
 
                 if (profileError) {
@@ -160,7 +163,7 @@ export const tenantService = {
                     alert('Aviso: Usuário de Auth criado, mas falha ao definir perfil de Admin. Contate suporte.');
                 }
 
-                console.log('Initial user profile created successfully');
+                console.log('Initial user profile created successfully (CEO/Active)');
 
             } catch (err) {
                 console.error("Failed to generate/save initial user", err);

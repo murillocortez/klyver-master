@@ -682,7 +682,11 @@ export const Tenants: React.FC = () => {
             </div>
 
             <h3 className="font-bold text-slate-900 text-2xl mb-2">Farmácia Cadastrada!</h3>
-            <p className="text-slate-500 mb-8">O ambiente já está pronto para uso. <br /> Compartilhe as credenciais abaixo com o administrador.</p>
+            <p className="text-slate-500 mb-8">
+              O ambiente já está pronto para uso.<br />
+              <span className="text-emerald-600 font-medium">Usuário inicial criado com acesso CEO.</span><br />
+              Recomenda-se criar mais usuários no painel da própria farmácia.
+            </p>
 
             <div className="bg-slate-50 rounded-2xl p-6 w-full border border-slate-100 mb-6">
               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Dados de Acesso Inicial</h4>
