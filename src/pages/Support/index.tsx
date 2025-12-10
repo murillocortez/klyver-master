@@ -60,12 +60,23 @@ const FAQSection = ({ onSelectArticle }: any) => {
       {!query && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {faqService.categories.map((cat: any) => {
-            const Icon = require('lucide-react')[cat.icon] || HelpCircle; // Dynamic icon require might fail in some bundlers, simplified below
+            const iconMap: any = {
+              'Store': Store,
+              'LayoutDashboard': LayoutDashboard,
+              'FileText': FileText,
+              'Printer': Printer,
+              'Users': Users,
+              'MessageCircle': MessageCircle,
+              'HelpCircle': HelpCircle, // Fallback
+              'Bot': MessageSquare, // AI
+              'CreditCard': CreditCard
+            };
+            const Icon = iconMap[cat.icon] || HelpCircle;
 
             return (
               <div key={cat.id} className="p-6 border border-slate-200 rounded-2xl hover:border-emerald-500 hover:shadow-lg transition-all cursor-pointer bg-white group">
                 <div className="p-3 bg-slate-50 text-slate-600 rounded-xl w-fit mb-4 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
-                  <HelpCircle size={24} />
+                  <Icon size={24} />
                 </div>
                 <h3 className="font-bold text-slate-900">{cat.title}</h3>
               </div>

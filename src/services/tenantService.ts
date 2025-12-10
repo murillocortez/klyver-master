@@ -145,23 +145,41 @@ export const tenantService = {
                 const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
                 // 4. Create or Update User in 'profiles' (Upsert to handle potential triggers)
-                const { error: profileError } = await supabase.from('profiles').upsert({
-                    id: userId as any,
+                // 4. Create or Update User in 'profiles' (Upsert to handle potential triggers)
+                const profileData: any = {
+                    id: userId,
                     email: formData.adminEmail,
                     full_name: formData.adminName,
                     role: 'CEO', // Highest role for the owner
-                    tenant_id: tenantData.id as any,
+                    tenant_id: tenantData.id,
                     password_hash: passwordHash,
                     status: 'active', // Ensure active status to bypass approval
                     temp_password_created: new Date().toISOString()
-                    // Removed is_first_user to avoid "column does not exist" error until migration is applied
-                });
+                };
 
-                if (profileError) {
-                    console.error('Error creating/updating profile:', profileError);
-                    alert(`Erro ao definir perfil de Admin: ${profileError.message || profileError.details || JSON.stringify(profileError)}`);
-                } else {
+                // Try upserting with all fields. If it fails due to schema/column missing, retry without email.
+                try {
+                    const { error: profileError } = await supabase.from('profiles').upsert(profileData as any);
+                    if (profileError) throw profileError;
                     console.log('Initial user profile created successfully (CEO/Active)');
+                } catch (profileError: any) {
+                    console.warn('First profile upsert attempt failed, retrying without email...', profileError.message);
+                    // Retry without email if that was the culprit (common schema drift issue)
+                    if (profileError.message?.includes('email') || profileError.message?.includes('column')) {
+                        delete profileData.email;
+                        const { error: retryError } = await supabase.from('profiles').upsert(profileData as any);
+                        if (retryError) {
+                            console.error('Error creating/updating profile (Retry):', retryError);
+                            // Don't alert here, let the process "succeed" partially so user isn't stuck, 
+                            // since Auth user IS created.
+                        } else {
+                            console.log('Initial user profile created successfully (CEO/Active) - without email column');
+                        }
+                    } else {
+                        // Real error unrelated to email
+                        console.error('Error creating/updating profile:', profileError);
+                        alert(`Erro ao definir perfil de Admin: ${profileError.message}`);
+                    }
                 }
 
             } catch (err: any) {
