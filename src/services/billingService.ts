@@ -9,8 +9,8 @@ export const billingService = {
         console.log(`[Billing] Processing successful payment for ${tenantId}`);
 
         // 1. Create Invoice Record (Paid)
-        const { data: invoice, error: invError } = await supabase
-            .from('invoices')
+        const { data: invoice, error: invError } = await (supabase
+            .from('invoices') as any)
             .insert({
                 tenant_id: tenantId,
                 plan_id: planId,
@@ -26,8 +26,8 @@ export const billingService = {
         if (invError) throw invError;
 
         // 2. Create Payment Record
-        const { error: payError } = await supabase
-            .from('payments')
+        const { error: payError } = await (supabase
+            .from('payments') as any)
             .insert({
                 tenant_id: tenantId,
                 invoice_id: invoice.id,
@@ -45,8 +45,8 @@ export const billingService = {
         const nextDue = new Date(now);
         nextDue.setDate(nextDue.getDate() + 30);
 
-        const { error: tenantError } = await supabase
-            .from('tenants')
+        const { error: tenantError } = await (supabase
+            .from('tenants') as any)
             .update({
                 status: 'active',
                 last_payment_at: now.toISOString(),
@@ -63,8 +63,8 @@ export const billingService = {
     },
 
     async blockTenant(tenantId: string, reason: string) {
-        await supabase
-            .from('tenants')
+        await (supabase
+            .from('tenants') as any)
             .update({
                 status: 'blocked',
                 blocked_reason: reason
@@ -86,8 +86,8 @@ export const billingService = {
         const now = new Date().toISOString();
 
         // 1. Find active tenants past due date
-        const { data: expiredTenants, error } = await supabase
-            .from('tenants')
+        const { data: expiredTenants, error } = await (supabase
+            .from('tenants') as any)
             .select('*')
             .in('status', ['active', 'trial'])
             .lt('next_payment_due_at', now);
@@ -107,7 +107,7 @@ export const billingService = {
 
             console.log(`[BillingMonitor] Updating ${tenant.slug} to ${newStatus}`);
 
-            await supabase.from('tenants').update({
+            await (supabase.from('tenants') as any).update({
                 status: newStatus,
                 blocked_reason: newStatus === 'blocked' ? 'Pagamento atrasado há mais de 5 dias.' : 'Pagamento em atraso.'
             } as any).eq('id', tenant.id);

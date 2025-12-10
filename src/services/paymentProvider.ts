@@ -7,7 +7,7 @@ import { Database } from '../types/supabase';
 export const paymentProvider = {
     async createCheckoutSession(tenantId: string, planId: string): Promise<string> {
         // 1. Get Plan Details
-        const { data: plan } = await supabase.from('store_plans').select('*').eq('id', planId).single();
+        const { data: plan } = await (supabase.from('store_plans') as any).select('*').eq('id', planId).single();
         if (!plan) throw new Error("Plan not found");
 
         console.log(`[MockPayment] Creating checkout for Tenant ${tenantId} Plan ${plan.name}`);

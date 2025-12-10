@@ -88,8 +88,8 @@ export const supportService = {
             } as any
         };
 
-        const { data: newTicket, error } = await supabase
-            .from('support_tickets')
+        const { data: newTicket, error } = await (supabase
+            .from('support_tickets') as any)
             .insert(ticketData as any)
             .select()
             .single();
@@ -103,8 +103,8 @@ export const supportService = {
     },
 
     async listTickets(tenantId?: string) {
-        let query = supabase
-            .from('support_tickets')
+        let query = (supabase
+            .from('support_tickets') as any)
             .select('*, tenants(display_name, slug)')
             .order('created_at', { ascending: false });
 
@@ -135,8 +135,8 @@ export const supportService = {
     },
 
     async updateStatus(ticketId: string, status: string) {
-        const { error } = await supabase
-            .from('support_tickets')
+        const { error } = await (supabase
+            .from('support_tickets') as any)
             .update({ status, updated_at: new Date().toISOString() } as any)
             .eq('id', ticketId);
 
