@@ -82,6 +82,30 @@ export const Tenants: React.FC = () => {
     }
   };
 
+  const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 14) value = value.slice(0, 14);
+    value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+    value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    value = value.replace(/(\d{4})(\d)/, '$1-$2');
+    e.target.value = value;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 11) value = value.slice(0, 11);
+
+    if (value.length > 10) {
+      value = value.replace(/^(\d{2})(\d)(\d{4})(\d{4}).*/, '($1) $2 $3-$4');
+    } else if (value.length > 5) {
+      value = value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+    } else if (value.length > 2) {
+      value = value.replace(/^(\d{2})(\d{0,5}).*/, '($1) $2');
+    }
+    e.target.value = value;
+  };
+
   const handleCreateTenant = async (e: React.FormEvent) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
@@ -514,7 +538,7 @@ export const Tenants: React.FC = () => {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-slate-700">CNPJ</label>
-                    <input name="cnpj" required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" placeholder="00.000.000/0001-00" />
+                    <input name="cnpj" required onChange={handleCnpjChange} maxLength={18} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" placeholder="00.000.000/0001-00" />
                   </div>
                 </div>
               </div>
@@ -534,7 +558,7 @@ export const Tenants: React.FC = () => {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-slate-700">Telefone</label>
-                    <input name="phone" required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
+                    <input name="phone" required onChange={handlePhoneChange} maxLength={15} placeholder="(00) 0 0000-0000" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
                   </div>
                 </div>
               </div>
@@ -614,7 +638,7 @@ export const Tenants: React.FC = () => {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-slate-700">CNPJ</label>
-                    <input name="cnpj" defaultValue={selectedTenant.cnpj} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
+                    <input name="cnpj" defaultValue={selectedTenant.cnpj} required onChange={handleCnpjChange} maxLength={18} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-slate-700">Slug (URL)</label>
@@ -638,7 +662,7 @@ export const Tenants: React.FC = () => {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-slate-700">Telefone</label>
-                    <input name="phone" defaultValue={selectedTenant.phone} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
+                    <input name="phone" defaultValue={selectedTenant.phone} required onChange={handlePhoneChange} maxLength={15} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
                   </div>
                 </div>
               </div>
