@@ -123,7 +123,7 @@ export const tenantService = {
                         data: {
                             full_name: formData.adminName,
                             role: 'ADMIN',
-                            tenant_id: tenantData.id
+                            tenant_id: tenantData.id,
                         }
                     }
                 });
