@@ -46,149 +46,25 @@ export const tenantService = {
         adminEmail?: string;
     }): Promise<{ tenant: Tenant, tempPassword?: string }> {
 
-        // Auto-generate slug and confirm uniqueness (simple retry or append random would be better but keeping simple)
-        let slug = generateSlug(formData.fantasyName);
-        const randomSuffix = Math.floor(Math.random() * 1000);
-        // Check if slug exists
-        const { data: existing } = await supabase.from('tenants').select('id').eq('slug', slug).maybeSingle();
-        if (existing) {
-            slug = `${slug}-${randomSuffix}`;
-        }
-
-        // Default values
-        const newTenantData: Database['public']['Tables']['tenants']['Insert'] = {
-            display_name: formData.fantasyName,
-            legal_name: formData.corporateName,
-            cnpj: formData.cnpj,
-            phone: formData.phone,
-            email: formData.email,
-            responsible_name: formData.responsibleName,
-            plan_code: formData.planCode,
-            slug: slug,
-            status: 'active',
-            // Save initial URLs based on current env, but frontend primarily uses dynamic generation
-            admin_base_url: getAdminUrl(slug),
-            store_base_url: getStoreUrl(slug),
-            monthly_revenue: 0,
-            active_users: 0,
-            risk_score: 0,
-            onboarding_status: 'completed' // Force completed to avoid "Dados pendentes" badge
-        };
-
-        const { data: tenantData, error } = await supabase
-            .from('tenants')
-            // @ts-ignore
-            .insert(newTenantData as any)
-            .select()
-            .single();
+        // Call Edge Function for secure creation
+        const { data, error } = await supabase.functions.invoke('create-tenant', {
+            body: {
+                tenant: formData,
+                adminEmail: formData.adminEmail,
+                adminName: formData.adminName
+            }
+        });
 
         if (error) {
-            console.error('Error creating tenant:', error);
-            throw error;
+            console.error('Edge function error:', error);
+            throw new Error(error.message || 'Erro ao criar farmácia via servidor seguro.');
         }
 
-        // --- USER CREATION LOGIC ---
-        let tempPassword = undefined;
-        if (formData.adminEmail && formData.adminName) {
-            try {
-                // 1. Generate Temp Password (1 Upper, 2 Numbers, 5 Lower)
-                const uppers = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                const numbers = '0123456789';
-                const lowers = 'abcdefghijklmnopqrstuvwxyz';
-
-                tempPassword =
-                    uppers.charAt(Math.floor(Math.random() * uppers.length)) +
-                    numbers.charAt(Math.floor(Math.random() * numbers.length)) +
-                    numbers.charAt(Math.floor(Math.random() * numbers.length)) +
-                    Array(5).fill(null).map(() => lowers.charAt(Math.floor(Math.random() * lowers.length))).join('');
-
-                // 2. Create Auth User (Real Supabase Auth)
-                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-                const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-                // Create a temporary client to avoid messing with current session
-                const { createClient } = await import('@supabase/supabase-js');
-                const authClient = createClient(supabaseUrl, supabaseAnonKey, {
-                    auth: {
-                        persistSession: false,
-                        autoRefreshToken: false,
-                        detectSessionInUrl: false
-                    }
-                });
-
-                const { data: authData, error: authError } = await authClient.auth.signUp({
-                    email: formData.adminEmail,
-                    password: tempPassword,
-                    options: {
-                        data: {
-                            full_name: formData.adminName,
-                            role: 'ADMIN',
-                            tenant_id: tenantData.id,
-                        }
-                    }
-                });
-
-                let userId: string = crypto.randomUUID(); // Fallback ID
-
-                if (authError) {
-                    console.warn('Warning: Could not create Supabase Auth user (maybe already exists)', authError);
-                } else if (authData && authData.user) {
-                    userId = authData.user.id;
-                    console.log('Supabase Auth user created successfully:', userId);
-                }
-
-                // 3. Hash Password (For profiles table legacy/redundancy)
-                const encoder = new TextEncoder();
-                const data = encoder.encode(tempPassword);
-                const hash = await crypto.subtle.digest('SHA-256', data);
-                const hashArray = Array.from(new Uint8Array(hash));
-                const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-                // 4. Create or Update User in 'profiles' (Upsert to handle potential triggers)
-                // 4. Create or Update User in 'profiles' (Upsert to handle potential triggers)
-                const profileData: any = {
-                    id: userId,
-                    email: formData.adminEmail,
-                    full_name: formData.adminName,
-                    role: 'CEO', // Highest role for the owner
-                    tenant_id: tenantData.id,
-                    password_hash: passwordHash,
-                    status: 'active', // Ensure active status to bypass approval
-                    temp_password_created: new Date().toISOString()
-                };
-
-                // Try upserting with all fields. If it fails due to schema/column missing, retry without email.
-                try {
-                    const { error: profileError } = await supabase.from('profiles').upsert(profileData as any);
-                    if (profileError) throw profileError;
-                    console.log('Initial user profile created successfully (CEO/Active)');
-                } catch (profileError: any) {
-                    console.warn('First profile upsert attempt failed, retrying without email...', profileError.message);
-                    // Retry without email if that was the culprit (common schema drift issue)
-                    if (profileError.message?.includes('email') || profileError.message?.includes('column')) {
-                        delete profileData.email;
-                        const { error: retryError } = await supabase.from('profiles').upsert(profileData as any);
-                        if (retryError) {
-                            console.error('Error creating/updating profile (Retry):', retryError);
-                            // Don't alert here, let the process "succeed" partially so user isn't stuck, 
-                            // since Auth user IS created.
-                        } else {
-                            console.log('Initial user profile created successfully (CEO/Active) - without email column');
-                        }
-                    } else {
-                        // Real error unrelated to email
-                        console.error('Error creating/updating profile:', profileError);
-                        alert(`Erro ao definir perfil de Admin: ${profileError.message}`);
-                    }
-                }
-
-            } catch (err: any) {
-                console.error("Failed to generate/save initial user", err);
-                alert(`Erro crítico ao criar usuário: ${err.message}`);
-            }
+        if (data.error) {
+            throw new Error(data.error);
         }
 
-        return { tenant: this.mapToTenant(tenantData), tempPassword };
+        return { tenant: this.mapToTenant(data.tenant), tempPassword: data.tempPassword };
     },
 
     async update(id: string, updates: Partial<Tenant> & { adminName?: string; adminEmail?: string; planCode?: string }): Promise<{ tempPassword?: string }> {
